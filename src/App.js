@@ -1,102 +1,123 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from "react";
+import './App.css'; // Для стилизации
 
-const symbols = ['♥', '♦', '♣', '♠', '★', '☆', '■', '□'];
 
-const shuffleCards = () => {
-  // Дублируем символы, чтобы было 16 карт
-  const cards = [...symbols, ...symbols];
-  // Перемешиваем массив
-  for (let i = cards.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [cards[i], cards[j]] = [cards[j], cards[i]];
-  }
-  return cards;
-};
+function App() {
+  const [coins, setCoins] = useState(0);
+  const [clickValue, setClickValue] = useState(1);
+  const [autoMining, setAutoMining] = useState(0);
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+  const [background, setBackground] = useState([]);
 
-const MemoryGame = () => {
-  const [cards, setCards] = useState(shuffleCards());
-  const [flipped, setFlipped] = useState(Array(16).fill(false));
-  const [selectedIndexes, setSelectedIndexes] = useState([]);
-  const [moves, setMoves] = useState(0);
-  const [won, setWon] = useState(false);
+  // Цена улучшений
+  const [clickUpgradeCost, setClickUpgradeCost] = useState(10);
+  const [autoMiningUpgradeCost, setAutoMiningUpgradeCost] = useState(20);
+  const [environmentUpgradeCost, setEnvironmentUpgradeCost] = useState(100);
 
+  // Функция для обновления UI
   useEffect(() => {
-    if (selectedIndexes.length === 2) {
-      const [firstIndex, secondIndex] = selectedIndexes;
-      if (cards[firstIndex] === cards[secondIndex]) {
-        // Карты совпали, оставляем их открытыми
-        setSelectedIndexes([]);
-      } else {
-        // Если карты не совпали, закрываем их через секунду
-        setTimeout(() => {
-          setFlipped(prev => {
-            const newFlipped = [...prev];
-            newFlipped[firstIndex] = false;
-            newFlipped[secondIndex] = false;
-            return newFlipped;
-          });
-          setSelectedIndexes([]);
-        }, 1000);
-      }
-      setMoves(prev => prev + 1);
-    }
-  }, [selectedIndexes, cards]);
+    document.title = `Монеты: ${coins}`;
+  }, [coins]);
 
-  useEffect(() => {
-    // Проверяем победу (если все карты открыты)
-    if (flipped.every(state => state)) {
-      setWon(true);
-    }
-  }, [flipped]);
-
-  const handleClick = index => {
-    if (flipped[index] || selectedIndexes.length === 2 || won) return;
-    
-    const newFlipped = [...flipped];
-    newFlipped[index] = true;
-    setFlipped(newFlipped);
-
-    setSelectedIndexes(prev => [...prev, index]);
+  // Добыча монет по клику
+  const handleClick = () => {
+    setCoins(coins + clickValue);
   };
 
-  const restartGame = () => {
-    setCards(shuffleCards());
-    setFlipped(Array(16).fill(false));
-    setSelectedIndexes([]);
-    setMoves(0);
-    setWon(false);
+  // Улучшение клика
+  const improveClick = () => {
+    if (coins >= clickUpgradeCost) {
+      setCoins(coins - clickUpgradeCost);
+      setClickValue(clickValue + 1);
+      setClickUpgradeCost(Math.floor(clickUpgradeCost * 1.5));
+    } else {
+      alert("Недостаточно монет!");
+    }
   };
+
+  // Улучшение автодобычи
+  const improveAutoMining = () => {
+    if (coins >= autoMiningUpgradeCost) {
+      setCoins(coins - autoMiningUpgradeCost);
+      setAutoMining(autoMining + 2);
+      setAutoMiningUpgradeCost(Math.floor(autoMiningUpgradeCost * 1.5));
+    } else {
+      alert("Недостаточно монет!");
+    }
+  };
+
+  // Улучшение окружения
+  const improveEnvironment = () => {
+    if (coins >= environmentUpgradeCost) {
+      setCoins(coins - environmentUpgradeCost);
+      setBackground([...background, 'forest']);  // Добавим элемент окружения
+      setEnvironmentUpgradeCost(Math.floor(environmentUpgradeCost * 1.5));
+    } else {
+      alert("Недостаточно монет!");
+    }
+  };
+
+  // Автодобыча
+  useEffect(() => {
+    if (autoMining > 0) {
+      const interval = setInterval(() => {
+        setCoins((prevCoins) => prevCoins + autoMining);
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [autoMining]);
 
   return (
-    <div>
-      <h1>Игра на память</h1>
-      {won && <div>Вы победили за {moves} ходов!</div>}
-      <div style={{ marginBottom: '20px' }}>
-        <button onClick={restartGame}>Начать заново</button>
+    <div style={{ textAlign: "center", padding: "20px", position: 'relative' }}>
+      <h1>Кликер с улучшениями</h1>
+      <div style={{ position: "absolute", left: "20px", top: "20px", fontSize: "20px" }}>
+        Монеты: {coins} <br />
+        Автодобыча: {autoMining} монет/сек
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 100px)', gap: '10px' }}>
-        {cards.map((symbol, index) => (
-          <div
-            key={index}
-            onClick={() => handleClick(index)}
-            style={{
-              width: '100px',
-              height: '100px',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              backgroundColor: flipped[index] ? 'white' : 'gray',
-              border: '1px solid black',
-              cursor: 'pointer',
-            }}
-          >
-            {flipped[index] ? symbol : ''}
+      <div style={{ position: "absolute", right: "20px", top: "20px" }}>
+        <button
+          onClick={() => setShowUpgradeDialog(true)}
+          style={{ padding: "10px 20px", fontSize: "16px", backgroundColor: "#ff9800", color: "white", border: "none", cursor: "pointer", borderRadius: "10px" }}
+        >
+          Улучшения
+        </button>
+      </div>
+      <div style={{ marginTop: "20px" }}>
+        <button
+          onClick={handleClick}
+          style={{ padding: "20px 40px", fontSize: "24px", backgroundColor: "#4CAF50", color: "white", border: "none", cursor: "pointer", borderRadius: "10px" }}
+        >
+          Добыть монету
+        </button>
+      </div>
+
+      {/* Модальное окно для улучшений */}
+      {showUpgradeDialog && (
+        <div className="modal">
+          <div className="modal-content">
+            <button onClick={() => setShowUpgradeDialog(false)} style={{ fontSize: '18px', color: 'white', backgroundColor: 'red', padding: '10px' }}>Закрыть</button>
+            <h2>Улучшения</h2>
+            <button onClick={improveClick} style={{ padding: "10px 20px", backgroundColor: "#ff9800", color: "white", border: "none", cursor: "pointer", borderRadius: "10px", marginTop: "10px" }}>
+              Улучшить клик ({clickUpgradeCost} монет)
+            </button>
+            <button onClick={improveAutoMining} style={{ padding: "10px 20px", backgroundColor: "#ff9800", color: "white", border: "none", cursor: "pointer", borderRadius: "10px", marginTop: "10px" }}>
+              Улучшить автодобычу ({autoMiningUpgradeCost} монет)
+            </button>
+            <button onClick={improveEnvironment} style={{ padding: "10px 20px", backgroundColor: "#ff9800", color: "white", border: "none", cursor: "pointer", borderRadius: "10px", marginTop: "10px" }}>
+              Улучшить окружение ({environmentUpgradeCost} монет)
+            </button>
           </div>
+        </div>
+      )}
+
+      {/* Окружение */}
+      <div className="background">
+        {background.map((item, index) => (
+          <img key={index} src={`/${item}.background.png`} alt={item} style={{ width: '100px', position: 'absolute', bottom: `${index * 30}px`, left: `${index * 100}px` }} />
         ))}
       </div>
-      <div>Ходов: {moves}</div>
     </div>
   );
-};
+}
 
-export default MemoryGame;
+export default App;
