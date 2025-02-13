@@ -1,253 +1,184 @@
-import React, { useState } from "react";
-import "./App.css";
+import React, { useEffect, useState, useRef } from 'react';
 
-const App = () => {
-  const [shapes, setShapes] = useState([
-    { id: 1, shape: "circle", x: 50, y: 50, color: "red" },
-    { id: 2, shape: "square", x: 150, y: 150, color: "blue" },
-    { id: 3, shape: "triangle", x: 250, y: 250, color: "green" },
-    { id: 4, shape: "circle", x: 350, y: 350, color: "yellow" },
-    { id: 5, shape: "square", x: 450, y: 450, color: "purple" },
-    { id: 6, shape: "triangle", x: 550, y: 550, color: "orange" },
-  ]);
+const ShapeNinja = () => {
+  const canvasRef = useRef(null);
+  const [shapes, setShapes] = useState([]);
 
-  const [dragging, setDragging] = useState(null);
-  const [offset, setOffset] = useState({ x: 0, y: 0 });
-
-  const handleMouseDown = (e, shape) => {
-    setDragging(shape);
-    setOffset({
-      x: e.clientX - shape.x,
-      y: e.clientY - shape.y
-    });
-  };
-
-  const handleMouseMove = (e) => {
-    if (dragging) {
-      const newShapes = shapes.map((shape) =>
-        shape.id === dragging.id
-          ? { ...shape, x: e.clientX - offset.x, y: e.clientY - offset.y }
-          : shape
-      );
-      setShapes(newShapes);
+  // Функция для генерации случайного цвета в формате HEX.
+  const getRandomColor = () => {
+    const letters = '0123456789ABCDEF';
+    let color = '#';
+    for (let i = 0; i < 6; i++) {
+      color += letters[Math.floor(Math.random() * 16)];
     }
+    return color;
   };
 
-  const handleMouseUp = () => {
-    if (dragging) {
-      // Слияние (merge) логика: если две фигуры перекрываются
-      const newShapes = [...shapes];
-      const draggedShape = dragging;
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
 
-      newShapes.forEach((shape) => {
-        if (shape.id !== draggedShape.id) {
-          const distance = Math.sqrt(
-            Math.pow(shape.x - draggedShape.x, 2) +
-              Math.pow(shape.y - draggedShape.y, 2)
+    // Функция для отрисовки фигуры с учетом её типа и цвета.
+    const drawShape = (shape) => {
+      ctx.beginPath();
+      switch (shape.type) {
+        case 'rectangle':
+          ctx.rect(
+            shape.x - shape.size / 2,
+            shape.y - shape.size / 2,
+            shape.size,
+            shape.size
           );
-
-          if (distance < 50) {
-            // Логика слияния в новые фигуры
-            let mergedShape;
-            if (draggedShape.shape === shape.shape) {
-              switch (draggedShape.shape) {
-                case "circle":
-                  mergedShape = {
-                    id: new Date().getTime(),
-                    shape: "oval",
-                    x: (shape.x + draggedShape.x) / 2,
-                    y: (shape.y + draggedShape.y) / 2,
-                    color: "purple"
-                  };
-                  break;
-                case "square":
-                  mergedShape = {
-                    id: new Date().getTime(),
-                    shape: "rectangle",
-                    x: (shape.x + draggedShape.x) / 2,
-                    y: (shape.y + draggedShape.y) / 2,
-                    color: "orange"
-                  };
-                  break;
-                case "triangle":
-                  // Два треугольника сливаются в ромб
-                  mergedShape = {
-                    id: new Date().getTime(),
-                    shape: "diamond",
-                    x: (shape.x + draggedShape.x) / 2,
-                    y: (shape.y + draggedShape.y) / 2,
-                    color: "cyan"
-                  };
-                  break;
-                default:
-                  break;
-              }
-            } else {
-              // Логика для смешанных фигур
-              if (
-                (draggedShape.shape === "circle" && shape.shape === "square") ||
-                (draggedShape.shape === "square" && shape.shape === "circle")
-              ) {
-                mergedShape = {
-                  id: new Date().getTime(),
-                  shape: "oval",
-                  x: (shape.x + draggedShape.x) / 2,
-                  y: (shape.y + draggedShape.y) / 2,
-                  color: "brown"
-                };
-              }
-              if (
-                (draggedShape.shape === "circle" && shape.shape === "triangle") ||
-                (draggedShape.shape === "triangle" && shape.shape === "circle")
-              ) {
-                mergedShape = {
-                  id: new Date().getTime(),
-                  shape: "diamond",
-                  x: (shape.x + draggedShape.x) / 2,
-                  y: (shape.y + draggedShape.y) / 2,
-                  color: "pink"
-                };
-              }
-              if (
-                (draggedShape.shape === "square" && shape.shape === "triangle") ||
-                (draggedShape.shape === "triangle" && shape.shape === "square")
-              ) {
-                mergedShape = {
-                  id: new Date().getTime(),
-                  shape: "rectangle",
-                  x: (shape.x + draggedShape.x) / 2,
-                  y: (shape.y + draggedShape.y) / 2,
-                  color: "yellow"
-                };
-              }
-            }
-
-            setShapes((prevShapes) =>
-              prevShapes.filter(
-                (s) => s.id !== draggedShape.id && s.id !== shape.id
-              ).concat(mergedShape)
-            );
-          }
+          break;
+        case 'circle':
+          ctx.arc(shape.x, shape.y, shape.size / 2, 0, 2 * Math.PI);
+          break;
+        case 'triangle': {
+          const angle = -Math.PI / 2;
+          const angleOffset = (2 * Math.PI) / 3;
+          const r = shape.size / 2;
+          const x1 = shape.x + r * Math.cos(angle);
+          const y1 = shape.y + r * Math.sin(angle);
+          const x2 = shape.x + r * Math.cos(angle + angleOffset);
+          const y2 = shape.y + r * Math.sin(angle + angleOffset);
+          const x3 = shape.x + r * Math.cos(angle + 2 * angleOffset);
+          const y3 = shape.y + r * Math.sin(angle + 2 * angleOffset);
+          ctx.moveTo(x1, y1);
+          ctx.lineTo(x2, y2);
+          ctx.lineTo(x3, y3);
+          ctx.closePath();
+          break;
         }
-      });
-
-      setDragging(null);
-    }
-  };
-
-  const renderShape = (shape) => {
-    const commonStyles = {
-      position: "absolute",
-      top: `${shape.y}px`,
-      left: `${shape.x}px`,
-      cursor: "pointer"
+        case 'pentagon': {
+          const sides = 5;
+          const r = shape.size / 2;
+          const startAngle = -Math.PI / 2;
+          for (let i = 0; i < sides; i++) {
+            const angle = startAngle + (2 * Math.PI * i) / sides;
+            const x = shape.x + r * Math.cos(angle);
+            const y = shape.y + r * Math.sin(angle);
+            if (i === 0) {
+              ctx.moveTo(x, y);
+            } else {
+              ctx.lineTo(x, y);
+            }
+          }
+          ctx.closePath();
+          break;
+        }
+        case 'star': {
+          const points = 5;
+          const outerRadius = shape.size / 2;
+          const innerRadius = outerRadius / 2;
+          const step = Math.PI / points;
+          let angle = -Math.PI / 2;
+          for (let i = 0; i < 2 * points; i++) {
+            const r = i % 2 === 0 ? outerRadius : innerRadius;
+            const x = shape.x + r * Math.cos(angle);
+            const y = shape.y + r * Math.sin(angle);
+            if (i === 0) {
+              ctx.moveTo(x, y);
+            } else {
+              ctx.lineTo(x, y);
+            }
+            angle += step;
+          }
+          ctx.closePath();
+          break;
+        }
+        default:
+          break;
+      }
+      ctx.fillStyle = shape.color;
+      ctx.fill();
     };
 
-    switch (shape.shape) {
-      case "circle":
-        return (
-          <div
-            key={shape.id}
-            className="shape"
-            style={{
-              ...commonStyles,
-              width: "50px",
-              height: "50px",
-              borderRadius: "50%",
-              backgroundColor: shape.color
-            }}
-            onMouseDown={(e) => handleMouseDown(e, shape)}
-          ></div>
-        );
-      case "square":
-        return (
-          <div
-            key={shape.id}
-            className="shape"
-            style={{
-              ...commonStyles,
-              width: "50px",
-              height: "50px",
-              backgroundColor: shape.color
-            }}
-            onMouseDown={(e) => handleMouseDown(e, shape)}
-          ></div>
-        );
-      case "triangle":
-        return (
-          <div
-            key={shape.id}
-            className="shape"
-            style={{
-              ...commonStyles,
-              width: "0",
-              height: "0",
-              borderLeft: "25px solid transparent",
-              borderRight: "25px solid transparent",
-              borderBottom: "50px solid " + shape.color
-            }}
-            onMouseDown={(e) => handleMouseDown(e, shape)}
-          ></div>
-        );
-      case "oval":
-        return (
-          <div
-            key={shape.id}
-            className="shape"
-            style={{
-              ...commonStyles,
-              width: "80px",
-              height: "50px",
-              borderRadius: "40px",
-              backgroundColor: shape.color
-            }}
-          ></div>
-        );
-      case "rectangle":
-        return (
-          <div
-            key={shape.id}
-            className="shape"
-            style={{
-              ...commonStyles,
-              width: "80px",
-              height: "50px",
-              backgroundColor: shape.color
-            }}
-          ></div>
-        );
-      case "diamond":
-        return (
-          <div
-            key={shape.id}
-            className="shape"
-            style={{
-              ...commonStyles,
-              width: "0",
-              height: "0",
-              borderLeft: "25px solid transparent",
-              borderRight: "25px solid transparent",
-              borderTop: "50px solid " + shape.color,
-              transform: "rotate(45deg)",
-            }}
-          ></div>
-        );
-      default:
-        return null;
+    // Функция обновления позиций фигур и перерисовки канвы.
+    const update = () => {
+      setShapes((prevShapes) => {
+        const newShapes = prevShapes.map((shape) => ({
+          ...shape,
+          x: shape.x + shape.vx,
+          y: shape.y + shape.vy,
+        }));
+        // Очистка канвы и заливка белым фоном.
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        newShapes.forEach(drawShape);
+        return newShapes;
+      });
+      requestAnimationFrame(update);
+    };
+
+    // Функция создания новой фигуры с случайным типом и цветом.
+    const spawnShape = () => {
+      const types = ['rectangle', 'circle', 'triangle', 'pentagon', 'star'];
+      const type = types[Math.floor(Math.random() * types.length)];
+      setShapes((prev) => [
+        ...prev,
+        {
+          id: Date.now() + Math.random(),
+          type,
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          size: 80,
+          vx: (Math.random() - 0.5) * 2,
+          vy: (Math.random() - 0.5) * 2,
+          color: getRandomColor(),
+        },
+      ]);
+    };
+
+    const intervalId = setInterval(spawnShape, 1000);
+    update();
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, []);
+
+  // Функция проверки попадания курсора в фигуру.
+  // Для круга точная проверка по расстоянию, для остальных — по квадрату, охватывающему фигуру.
+  const hitTest = (shape, mouseX, mouseY) => {
+    const half = shape.size / 2;
+    if (shape.type === 'circle') {
+      const dx = mouseX - shape.x;
+      const dy = mouseY - shape.y;
+      return dx * dx + dy * dy <= half * half;
+    } else {
+      return (
+        mouseX > shape.x - half &&
+        mouseX < shape.x + half &&
+        mouseY > shape.y - half &&
+        mouseY < shape.y + half
+      );
     }
+  };
+
+  // При движении мыши проверяем попадание по фигурам и "разрезаем" их, если размер достаточно велик.
+  const handleCut = (e) => {
+    const { offsetX, offsetY } = e.nativeEvent;
+    setShapes((prevShapes) =>
+      prevShapes.flatMap((shape) =>
+        hitTest(shape, offsetX, offsetY) && shape.size > 20
+          ? [
+              { ...shape, size: shape.size / 2, x: shape.x - 10 },
+              { ...shape, size: shape.size / 2, x: shape.x + 10 },
+            ]
+          : shape
+      )
+    );
   };
 
   return (
-    <div
-      className="game-container"
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      style={{ width: "100vw", height: "100vh", position: "relative" }}
-    >
-      {shapes.map(renderShape)}
-    </div>
+    <canvas
+      ref={canvasRef}
+      width={800}
+      height={600}
+      onMouseMove={handleCut}
+      style={{ background: 'white', border: '1px solid #ccc' }}
+    />
   );
 };
 
-export default App;
-
+export default ShapeNinja;
