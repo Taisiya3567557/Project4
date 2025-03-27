@@ -1,40 +1,69 @@
-from flask import Flask, request
-from flask_socketio import SocketIO, emit
-import base64
+import os
+from flask import Flask, request, render_template, send_from_directory, redirect, url_for
+from werkzeug.utils import secure_filename
 
+# Инициализация приложения
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'secret!'
-socketio = SocketIO(app, cors_allowed_origins="*")
 
-users = {}
+# Конфигурация
+UPLOAD_FOLDER = 'uploads'  # Папка для хранения файлов
+ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}  # Разрешенные расширения
 
-@socketio.on("connect")
-def handle_connect():
-    print("User connected")
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # Ограничение на размер файла (16 MB)
 
-@socketio.on("join")
-def handle_join(username):
-    users[request.sid] = username
-    emit("user_joined", {"username": username}, broadcast=True)
+# Функция для проверки разрешенных расширений
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-@socketio.on("message")
-def handle_message(data):
-    username = users.get(request.sid, "Unknown")
-    emit("message", {"username": username, "message": data["message"]}, broadcast=True)
+# Главная страница: список файлов
+@app.route('/')
+def index():
+    # Список всех файлов в папке uploads
+    files = os.listdir(app.config['UPLOAD_FOLDER'])
+    files_info = []
 
-@socketio.on("image")
-def handle_image(data):
-    username = users.get(request.sid, "Unknown")
-    image_data = data["image"]
-    
-    # Отправляем изображение всем пользователям
-    emit("image", {"username": username, "image": image_data}, broadcast=True)
+    # Получаем информацию о файлах (имя и размер)
+    for file in files:
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], file)
+        if os.path.isfile(file_path):
+            files_info.append({
+                'name': file,
+                'size': os.path.getsize(file_path)
+            })
 
-@socketio.on("disconnect")
-def handle_disconnect():
-    if request.sid in users:
-        username = users.pop(request.sid)
-        emit("user_left", {"username": username}, broadcast=True)
+    return render_template('index.html', files=files_info)
 
-if __name__ == "__main__":
-    socketio.run(app, host="0.0.0.0", port=5000, debug=True)
+# Страница загрузки файлов
+@app.route('/upload', methods=['GET', 'POST'])
+def upload_file():
+    if request.method == 'POST':
+        file = request.files['file']
+
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            return redirect(url_for('index'))
+
+    return render_template('upload.html')
+
+# Скачивание файла
+@app.route('/uploads/<filename>')
+def download_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
+# Удаление файла
+@app.route('/delete/<filename>')
+def delete_file(filename):
+    file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    if os.path.exists(file_path):
+        os.remove(file_path)
+    return redirect(url_for('index'))
+
+if __name__ == '__main__':
+    # Создаем папку для хранения файлов, если она не существует
+    if not os.path.exists(UPLOAD_FOLDER):
+        os.makedirs(UPLOAD_FOLDER)
+
+    # Запуск приложения
+    app.run(debug=True)

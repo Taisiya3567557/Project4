@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Файловое хранилище</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f0f4f8;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #333;
+        }
+        .container {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 80%;
+            max-width: 1000px;
+            padding: 30px;
+            text-align: center;
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        .file-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+        }
+        .file-item {
+            background: #ecf0f1;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            width: 250px;
+            text-align: center;
+            transition: all 0.3s ease;
+            border-left: 5px solid #3498db;
+        }
+        .file-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        .file-item h3 {
+            font-size: 18px;
+            color: #2980b9;
+            margin-bottom: 10px;
+        }
+        .file-item p {
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+        .file-actions {
+            margin-top: 15px;
+        }
+        .file-actions a {
+            background-color: #3498db;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 14px;
+            transition: background-color 0.3s;
+            margin: 0 5px;
+        }
+        .file-actions a:hover {
+            background-color: #2980b9;
+        }
+        .upload-btn {
+            background-color: #e74c3c;
+            color: white;
+            padding: 12px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: background-color 0.3s;
+            margin-bottom: 20px;
+        }
+        .upload-btn:hover {
+            background-color: #c0392b;
+        }
+        .no-files {
+            font-size: 18px;
+            color: #95a5a6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Файловое хранилище</h1>
+
+        <!-- Кнопка загрузки файла -->
+        <a href="{{ url_for('upload_file') }}" class="upload-btn">Загрузить новый файл</a>
+
+        <div class="file-list">
+            {% if files %}
+                {% for file in files %}
+                    <div class="file-item">
+                        <h3>{{ file.name }}</h3>
+                        <p>{{ file.size }} bytes</p>
+                        <div class="file-actions">
+                            <a href="{{ url_for('download_file', filename=file.name) }}">Скачать</a>
+                            <a href="{{ url_for('delete_file', filename=file.name) }}">Удалить</a>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p class="no-files">Нет загруженных файлов.</p>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

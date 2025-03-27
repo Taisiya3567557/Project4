@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Скачать файл</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f0f4f8;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #333;
+        }
+        .container {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+            padding: 30px;
+            text-align: center;
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        .back-btn {
+            background-color: #2c3e50;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 16px;
+            margin-bottom: 20px;
+            display: inline-block;
+            transition: background-color 0.3s;
+        }
+        .back-btn:hover {
+            background-color: #34495e;
+        }
+        .download-info {
+            margin-bottom: 20px;
+        }
+        .download-info a {
+            display: inline-block;
+            padding: 12px 20px;
+            background-color: #2ecc71;
+            color: white;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 16px;
+            margin-top: 20px;
+            transition: background-color 0.3s;
+        }
+        .download-info a:hover {
+            background-color: #27ae60;
+        }
+
+        /* Модальное окно */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            justify-content: center;
+            align-items: center;
+            overflow: auto;
+        }
+        .modal-content {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 600px;
+            position: relative;
+        }
+        .modal img {
+            width: 100%;
+            max-height: 80vh;
+            object-fit: contain;
+            cursor: zoom-in;
+        }
+        .modal .close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 24px;
+            color: #333;
+            cursor: pointer;
+        }
+        .modal .close:hover {
+            color: #e74c3c;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="{{ url_for('index') }}" class="back-btn">Назад</a>
+
+        <h1>Скачать файл</h1>
+
+        <div class="download-info">
+            <p>Вы хотите скачать файл: <strong>{{ filename }}</strong></p>
+            <a href="{{ url_for('download_file', filename=filename) }}" download>Скачать файл</a>
+        </div>
+
+        <!-- Модальное окно для просмотра изображений -->
+        <div id="myModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <img src="{{ url_for('download_file', filename=filename) }}" alt="Изображение">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Модальное окно
+        var modal = document.getElementById("myModal");
+        var img = document.querySelector(".download-info a"); // Картинка для модального окна
+        var modalImg = document.querySelector(".modal img");
+        var span = document.querySelector(".close");
+
+        // Когда пользователь кликает на ссылку, открываем модальное окно
+        img.onclick = function(event) {
+            event.preventDefault();
+            modal.style.display = "flex";
+            modalImg.src = img.href;
+        }
+
+        // Когда пользователь кликает на "x", закрываем модальное окно
+        span.onclick = function() {
+            modal.style.display = "none";
+        }
+
+        // Когда пользователь кликает в любом месте вне модального окна, закрываем его
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+    </script>
+</body>
+</html>
