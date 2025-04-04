@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Файловое хранилище</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8e1f4; /* Светлый розовый фон страницы */
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            text-align: center;
+            color: #ff4da6; /* Яркий розовый цвет для заголовка */
+            margin-top: 20px;
+        }
+
+        .container {
+            width: 80%;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .file-list {
+            background-color: #ffd9e6; /* Светлый розовый для блока списка файлов */
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .file-list ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .file-list li {
+            background-color: #f9e3f2; /* Бледно-розовый фон для каждого файла */
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .file-list li a {
+            text-decoration: none;
+            color: #ff4da6; /* Розовый цвет для ссылки */
+        }
+
+        .file-list li button {
+            background-color: #ff4da6; /* Розовая кнопка */
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .file-list li button:hover {
+            background-color: #ff3385; /* Более темный оттенок розового при наведении */
+        }
+
+        .upload-section {
+            background-color: #ffb3d9; /* Розовый фон для раздела загрузки */
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .upload-section input[type="file"] {
+            padding: 10px;
+            margin-right: 10px;
+            border-radius: 4px;
+        }
+
+        .upload-section input[type="submit"] {
+            background-color: #ff4da6; /* Розовая кнопка загрузки */
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .upload-section input[type="submit"]:hover {
+            background-color: #ff3385; /* Темно-розовый при наведении */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Файловое хранилище</h1>
+
+        <!-- Окно загрузки -->
+        <div class="upload-section">
+            <h2>Загрузить файл</h2>
+            <form method="post" enctype="multipart/form-data">
+                <input type="file" name="file">
+                <input type="submit" value="Загрузить">
+            </form>
+        </div>
+
+        <!-- Список загруженных файлов -->
+        <div class="file-list">
+            <h2>Загруженные файлы</h2>
+            <ul>
+                {% for filename, size in file_info %}
+                    <li>
+                        <a href="{{ url_for('download_file', filename=filename) }}">{{ filename }}</a> 
+                        ({{ size }} байт)
+                        <form action="{{ url_for('delete_file', filename=filename) }}" method="post" style="display:inline;">
+                            <button type="submit">Удалить</button>
+                        </form>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+</body>
+</html>
