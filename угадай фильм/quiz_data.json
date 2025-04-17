@@ -1,0 +1,22 @@
+[
+  {
+    "video_filename": "videoplayback (1).mp4",
+    "correct": "Гладиаторы",
+    "options": ["Банкет", "Гладиаторы", "Патруль", "Первый батальен"]
+  },
+  {
+    "video_filename": "videoplayback (2).mp4",
+    "correct": "Патруль",
+    "options": ["Банкет", "Гладиаторы", "Патруль", "Первый батальен"]
+  },
+  {
+    "video_filename": "videoplayback (3).mp4",
+    "correct": "Первый батальен",
+    "options": ["Банкет", "Гладиаторы", "Патруль", "Первый батальен"]
+  },
+  {
+    "video_filename": "videoplayback.mp4",
+    "correct": "Банкет",
+    "options": ["Банкет", "Гладиаторы", "Патруль", "Первый батальен"]
+  }
+]

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Угадай фильм!</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        .button-container {
+            margin-top: 20px;
+        }
+        .btn {
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background-color: #ccc;
+        }
+    </style>
+</head>
+<body>
+    <h1>Угадай фильм!</h1>
+
+    <!-- Вставляем видео с правильным путем -->
+    <video width="600" controls>
+        <source src="{{ url_for('static', filename='media/' + question['video_filename']) }}" type="video/mp4">
+        Ваш браузер не поддерживает видео.
+    </video>
+    
+    <h2>Какой фильм это?</h2>
+    
+    <!-- Форма с кнопками для выбора ответа -->
+    <form method="POST">
+        <div class="button-container">
+            {% for option in question['options'] %}
+                <button type="submit" class="btn" name="answer" value="{{ option }}">{{ option }}</button>
+            {% endfor %}
+        </div>
+    </form>
+</body>
+</html>
